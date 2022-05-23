@@ -18,8 +18,18 @@ async function run() {
     try {
         await client.connect();
         const partsCollection = client.db("bicycle-builder").collection("all-parts");
+        const userCollection = client.db("bicycle-builder").collection("users");
+
+        // ALL Spare Parts
         app.get('/all-parts', async (req, res) => {
             const result = await partsCollection.find().sort({ "_id": -1 }).toArray();
+            res.send(result);
+        });
+
+        // User Insert
+        app.post('/user', async (req, res) => {
+            const user = req.body;
+            const result = await userCollection.insertOne(user);
             res.send(result);
         });
     }
