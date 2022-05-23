@@ -13,8 +13,8 @@ app.use(cors());
 app.use(express.json());
 
 app.get('/get-token', (req, res) => {
-    const { email } = req.body;
-    const token = jwt.sign({ email }, process.env.TOKEN_SECRET);
+    const { email } = req.query;
+    const token = jwt.sign({ email }, process.env.TOKEN_SECRET, { expiresIn: '1h' });
     res.send({ success: true, accessToken: token });
 });
 
@@ -34,9 +34,34 @@ async function run() {
         });
 
         // User Insert
-        app.post('/user', async (req, res) => {
+        app.put('/user', async (req, res) => {
+            const { email } = req.query;
             const user = req.body;
-            const result = await userCollection.insertOne(user);
+            const filter = { email };
+            const options = { upsert: true };
+            const updateDoc = {
+                $set: user
+            };
+            const result = await userCollection.updateOne(filter, updateDoc, options);
+            res.send(result);
+        });
+
+        // Get All user
+        app.get('/user', async (req, res) => {
+            const result = await userCollection.find().toArray();
+            res.send(result);
+        });
+
+        // Make Admin
+        app.patch('/user/:id', async (req, res) => {
+            const { id } = req.params;
+            const filter = { _id: ObjectId(id) };
+            const updateDoc = {
+                $set: {
+                    admin: true
+                }
+            };
+            const result = await userCollection.updateOne(filter, updateDoc);
             res.send(result);
         });
     }
