@@ -48,10 +48,23 @@ async function run() {
             res.send(result);
         });
 
+        app.get('/products', async (req, res) => {
+            const result = await partsCollection.find().sort({ "_id": -1 }).toArray();
+            res.send(result);
+        });
+
         // Insert Product
         app.post('/product', async (req, res) => {
             const product = req.body;
             const result = await partsCollection.insertOne(product);
+            res.send(result);
+        });
+
+        // Delete Product
+        app.delete('/product/:id', verifyJWT, async (req, res) => {
+            const { id } = req.params;
+            const query = ({ _id: ObjectId(id) });
+            const result = await partsCollection.deleteOne(query);
             res.send(result);
         });
 
