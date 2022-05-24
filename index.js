@@ -24,7 +24,6 @@ const verifyJWT = (req, res, next) => {
         return res.status(401).send({ message: 'unauthorized access' });
     }
     const token = authHeader.split(' ')[1];
-    console.log(token);
     jwt.verify(token, process.env.TOKEN_SECRET, function (err, decoded) {
         if (err) {
             return res.status(403).send({ message: 'forbidden access' });
@@ -45,7 +44,14 @@ async function run() {
 
         // ALL Spare Parts
         app.get('/all-parts', async (req, res) => {
-            const result = await partsCollection.find().sort({ "_id": -1 }).toArray();
+            const result = await partsCollection.find().sort({ "_id": -1 }).limit(3).toArray();
+            res.send(result);
+        });
+
+        // Insert Product
+        app.post('/product', async (req, res) => {
+            const product = req.body;
+            const result = await partsCollection.insertOne(product);
             res.send(result);
         });
 
@@ -68,6 +74,14 @@ async function run() {
             res.send(result);
         });
 
+        // Get a single user
+        app.get('/user/:email', verifyJWT, async (req, res) => {
+            const { email } = req.params;
+            const query = { email }
+            const result = await userCollection.findOne(query);
+            res.send(result);
+        });
+
         // Make Admin
         app.patch('/user/:id', async (req, res) => {
             const { id } = req.params;
@@ -82,7 +96,7 @@ async function run() {
         });
 
         // Delete User
-        app.patch('/user/:id', async (req, res) => {
+        app.delete('/user/:id', async (req, res) => {
             const { id } = req.params;
             const filter = { _id: ObjectId(id) };
             const result = await userCollection.deleteOne(filter);
