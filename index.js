@@ -143,7 +143,30 @@ async function run() {
         // Post a Order
         app.post('/order', async (req, res) => {
             const order = req.body;
+            const filter = { _id: ObjectId(order.pdId) };
+            const product = await partsCollection.findOne(filter);
+            const available = product.available - order.quantity;
+            const updateDoc = {
+                $set: {
+                    available
+                }
+            };
+            await partsCollection.updateOne(filter, updateDoc)
             const result = await orderCollection.insertOne(order);
+            res.send(result);
+        });
+
+        // Get Order
+        app.get('/order', verifyJWT, async (req, res) => {
+            const { email } = req.query;
+            const decodedEmail = req.decoded.email;
+            console.log(email, decodedEmail);
+            if (email !== decodedEmail) {
+                return res.status(403).send({ message: 'forbidden access' });
+            }
+            const query = { email };
+            const result = await orderCollection.find(query).toArray();
+            console.log(result);
             res.send(result);
         });
     }
