@@ -44,6 +44,17 @@ async function run() {
         const reviewCollection = client.db("bicycle-builder").collection("reviews");
         const orderCollection = client.db("bicycle-builder").collection("orders");
 
+        // Verify Admin Middleware
+        const verifyAdmin = async (req, res, next) => {
+            const { email } = req.decoded;
+            const filter = { email };
+            const result = await userCollection.findOne(filter);
+            if (!result.admin) {
+                return res.status(403).send({ message: 'forbidden access' });
+            }
+            next();
+        }
+
         // ALL Spare Parts
         app.get('/all-parts', async (req, res) => {
             const result = await partsCollection.find().sort({ "_id": -1 }).limit(3).toArray();
@@ -151,7 +162,7 @@ async function run() {
                     available
                 }
             };
-            await partsCollection.updateOne(filter, updateDoc)
+            await partsCollection.updateOne(filter, updateDoc);
             const result = await orderCollection.insertOne(order);
             res.send(result);
         });
@@ -170,9 +181,19 @@ async function run() {
         });
 
         // Delete a order
-        app.delete('/order/:id', async (req, res) => {
+        app.delete('/order/:id', verifyJWT, async (req, res) => {
             const { id } = req.params;
             const filter = { _id: ObjectId(id) };
+            const order = await orderCollection.findOne(filter);
+            const query = { _id: ObjectId(order.pdId) };
+            const product = await partsCollection.findOne(query);
+            const available = Number(product.available) + Number(order.quantity);
+            const updateDoc = {
+                $set: {
+                    available
+                }
+            };
+            await partsCollection.updateOne(query, updateDoc);
             const result = await orderCollection.deleteOne(filter);
             res.send(result);
         });
