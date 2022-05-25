@@ -42,6 +42,7 @@ async function run() {
         const partsCollection = client.db("bicycle-builder").collection("all-parts");
         const userCollection = client.db("bicycle-builder").collection("users");
         const reviewCollection = client.db("bicycle-builder").collection("reviews");
+        const orderCollection = client.db("bicycle-builder").collection("orders");
 
         // ALL Spare Parts
         app.get('/all-parts', async (req, res) => {
@@ -49,8 +50,17 @@ async function run() {
             res.send(result);
         });
 
+        // All Products
         app.get('/products', async (req, res) => {
             const result = await partsCollection.find().sort({ "_id": -1 }).toArray();
+            res.send(result);
+        });
+
+        // Get a single Product
+        app.get('/product/:id', verifyJWT, async (req, res) => {
+            const { id } = req.params;
+            const query = ({ _id: ObjectId(id) });
+            const result = await partsCollection.findOne(query);
             res.send(result);
         });
 
@@ -121,6 +131,19 @@ async function run() {
         app.post('/review', async (req, res) => {
             const review = req.body;
             const result = await reviewCollection.insertOne(review);
+            res.send(result);
+        });
+
+        // Get Review
+        app.get('/review', async (req, res) => {
+            const result = await reviewCollection.find().sort({ "_id": -1 }).toArray();
+            res.send(result);
+        });
+
+        // Post a Order
+        app.post('/order', async (req, res) => {
+            const order = req.body;
+            const result = await orderCollection.insertOne(order);
             res.send(result);
         });
     }
