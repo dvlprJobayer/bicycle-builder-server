@@ -166,7 +166,14 @@ async function run() {
             }
             const query = { email };
             const result = await orderCollection.find(query).toArray();
-            console.log(result);
+            res.send(result);
+        });
+
+        // Delete a order
+        app.delete('/order/:id', async (req, res) => {
+            const { id } = req.params;
+            const filter = { _id: ObjectId(id) };
+            const result = await orderCollection.deleteOne(filter);
             res.send(result);
         });
     }
