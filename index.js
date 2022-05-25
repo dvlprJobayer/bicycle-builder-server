@@ -41,6 +41,7 @@ async function run() {
         await client.connect();
         const partsCollection = client.db("bicycle-builder").collection("all-parts");
         const userCollection = client.db("bicycle-builder").collection("users");
+        const reviewCollection = client.db("bicycle-builder").collection("reviews");
 
         // ALL Spare Parts
         app.get('/all-parts', async (req, res) => {
@@ -113,6 +114,13 @@ async function run() {
             const { id } = req.params;
             const filter = { _id: ObjectId(id) };
             const result = await userCollection.deleteOne(filter);
+            res.send(result);
+        });
+
+        // Review Insert
+        app.post('/review', async (req, res) => {
+            const review = req.body;
+            const result = await reviewCollection.insertOne(review);
             res.send(result);
         });
     }
