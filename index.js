@@ -151,6 +151,12 @@ async function run() {
             res.send(result);
         });
 
+        // Get all order for admin
+        app.get('/all-order', verifyJWT, verifyAdmin, async (req, res) => {
+            const result = await orderCollection.find().toArray();
+            res.send(result);
+        });
+
         // Post a Order
         app.post('/order', async (req, res) => {
             const order = req.body;
