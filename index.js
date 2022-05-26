@@ -4,6 +4,7 @@ require('dotenv').config();
 const jwt = require('jsonwebtoken');
 const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 const port = process.env.PORT || 5000;
+const stripe = require("stripe")(process.env.STRIPE_SECRET)
 
 // Make App
 const app = express();
@@ -54,6 +55,25 @@ async function run() {
             }
             next();
         }
+
+        // Payment Api
+        app.post('/create-payment-intent', verifyJWT, async (req, res) => {
+            const { price } = req.body;
+            const amount = price * 100;
+
+            // Create a PaymentIntent with the order amount and currency
+            const paymentIntent = await stripe.paymentIntents.create({
+                amount,
+                currency: "usd",
+                payment_method_types: [
+                    "card"
+                ],
+            });
+
+            res.send({
+                clientSecret: paymentIntent.client_secret,
+            });
+        });
 
         // ALL Spare Parts
         app.get('/all-parts', async (req, res) => {
@@ -165,6 +185,18 @@ async function run() {
             res.send(result);
         });
 
+        // Update order after payment
+        app.patch('/order/:id', verifyJWT, async (req, res) => {
+            const { id } = req.params;
+            const order = req.body;
+            const filter = { _id: ObjectId(id) };
+            const updateDoc = {
+                $set: order
+            };
+            const result = await orderCollection.updateOne(filter, updateDoc);
+            res.send(result);
+        });
+
         // Post a Order
         app.post('/order', async (req, res) => {
             const order = req.body;
@@ -185,7 +217,6 @@ async function run() {
         app.get('/order', verifyJWT, async (req, res) => {
             const { email } = req.query;
             const decodedEmail = req.decoded.email;
-            console.log(email, decodedEmail);
             if (email !== decodedEmail) {
                 return res.status(403).send({ message: 'forbidden access' });
             }
