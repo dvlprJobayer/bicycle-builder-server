@@ -157,6 +157,14 @@ async function run() {
             res.send(result);
         });
 
+        // Get a single order for payment
+        app.get('/order/:id', verifyJWT, async (req, res) => {
+            const { id } = req.params;
+            const filter = { _id: ObjectId(id) };
+            const result = await orderCollection.findOne(filter);
+            res.send(result);
+        });
+
         // Post a Order
         app.post('/order', async (req, res) => {
             const order = req.body;
