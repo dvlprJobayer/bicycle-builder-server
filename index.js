@@ -249,7 +249,7 @@ run().catch(console.dir);
 
 // Test Api
 app.get('/', (req, res) => {
-    res.send('Running to do server');
+    res.send('Running bicycle builder server');
 });
 
 // Listen App
