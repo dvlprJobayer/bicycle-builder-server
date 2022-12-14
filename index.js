@@ -37,7 +37,7 @@ const verifyJWT = (req, res, next) => {
 };
 
 // Database
-const uri = `mongodb+srv://dbToDoApp:tQpk4C3D3W03Swc9@cluster0.5bvzh.mongodb.net/?retryWrites=true&w=majority`;
+const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.5bvzh.mongodb.net/?retryWrites=true&w=majority`;
 const client = new MongoClient(uri, {
   useNewUrlParser: true,
   useUnifiedTopology: true,
